@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Slow Fashion — Com Amor</title>
+  <style>
+    :root{
+      --bg1:#ffeff6;
+      --bg2:#ffe0ea;
+      --accent:#ff4d88;
+      --accent-2:#ff6fa3;
+      --text:#3b2240;
+      --card:#ffffffcc;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    /* Resetzinho básico */
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 20% 10%, var(--bg2), transparent),
+                  radial-gradient(1000px 700px at 80% 0%, #fff, transparent),
+                  linear-gradient(180deg, var(--bg1), #fff);
+      overflow:hidden; /* para as animações não criarem scroll */
+    }
+
+    /* Corações flutuantes do fundo */
+    .hearts{
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      mask-image: radial-gradient(closest-side, black 60%, transparent);
+    }
+    .heart{
+      position:absolute; width:22px; height:22px; transform: rotate(45deg);
+      background: var(--accent);
+      box-shadow: inset 0 -3px 8px rgba(0,0,0,.15);
+      border-radius:4px;
+      opacity:.18;
+      animation: floatUp linear infinite;
+    }
+    .heart::before, .heart::after{
+      content:""; position:absolute; width:22px; height:22px; background:inherit;
+      border-radius:50%;
+    }
+    .heart::before{ left:-11px; top:0; }
+    .heart::after{ top:-11px; left:0; }
+
+    @keyframes floatUp{
+      0%{ transform: translateY(0) rotate(45deg) scale(1); }
+      100%{ transform: translateY(-120vh) rotate(45deg) scale(1.1); }
+    }
+
+    /* Conteúdo principal */
+    .wrap{
+      position:relative; z-index:1; display:grid; place-items:center; min-height:100dvh; padding:24px;
+    }
+    .card{
+      max-width:840px; width:min(92vw, 840px);
+      background:var(--card);
+      backdrop-filter: blur(8px) saturate(1.2);
+      border:1px solid #ffffffaa;
+      border-radius:26px;
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 40px);
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+      border-radius:999px; background:#fff; border:1px solid #ffd1e0; font-weight:600; font-size:12px; letter-spacing:.3px;
+    }
+    .badge .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 4px #ffd1e033; }
+
+    h1{
+      margin:12px 0 8px; font-size:clamp(28px, 4vw, 48px); line-height:1.05;
+      letter-spacing:-.02em;
+    }
+    .subtitle{
+      margin:0 0 22px; font-size:clamp(16px, 2.4vw, 18px); opacity:.85;
+    }
+
+    .cta{
+      display:flex; flex-wrap:wrap; gap:12px; margin-top:22px;
+    }
+    .btn{
+      --ring: 0 0 0 0 rgba(255,77,136,0);
+      appearance:none; border:0; padding:12px 18px; border-radius:16px; font-weight:700; cursor:pointer;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2)); color:white;
+      box-shadow: 0 8px 18px rgba(255,77,136,.25), var(--ring);
+      transform: translateY(0);
+      transition: transform .15s ease, box-shadow .15s ease, filter .2s ease;
+    }
+    .btn:hover{ transform: translateY(-2px); filter:saturate(1.1); box-shadow: 0 12px 24px rgba(255,77,136,.3), 0 0 0 6px rgba(255,77,136,.14); }
+    .btn:active{ transform: translateY(0); box-shadow: 0 6px 14px rgba(255,77,136,.25); }
+
+    .ghost{
+      background: #fff; color:var(--accent); border:1px solid #ffd1e0;
+    }
+
+    /* Pequenos enfeites */
+    .inline-hearts{ display:inline-flex; gap:6px; vertical-align:middle; margin-left:6px; }
+    .heart-emoji{ filter: drop-shadow(0 4px 10px rgba(0,0,0,.1)); }
+
+    footer{
+      text-align:center; font-size:12px; opacity:.7; margin-top:20px;
+    }
+
+    /* Acessibilidade: reduz animação se preferido */
+    @media (prefers-reduced-motion: reduce){
+      .heart{ animation: none; opacity:.1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Corações de fundo -->
+  <div class="hearts" aria-hidden="true" id="hearts"></div>
+
+  <main class="wrap">
+    <section class="card">
+      <span class="badge"><span class="dot" aria-hidden="true"></span> Slow Fashion com carinho</span>
+      <h1>Oi, professora linda <span class="inline-hearts" aria-hidden="true">💖💗💞</span></h1>
+      <p class="subtitle">Testando nosso QR CODE ✨</p>
+
+      <div class="cta">
+        <button class="btn" id="loveBtn" aria-label="Enviar carinho">Enviar carinho ❤️</button>
+        <button class="btn ghost" id="toggleHearts" aria-pressed="false">Pausar corações</button>
+      </div>
+
+      <footer>Feito com ♥ para a aula de português.</footer>
+    </section>
+  </main>
+
+  <script>
+    // Utilidade: gerar vários corações em posições e velocidades diferentes
+    const heartsLayer = document.getElementById('hearts');
+    const makeHeart = (left, size, dur, delay) => {
+      const h = document.createElement('span');
+      h.className = 'heart';
+      h.style.left = left + 'vw';
+      h.style.bottom = '-10vh';
+      h.style.width = h.style.height = size + 'px';
+      h.style.animationDuration = dur + 's';
+      h.style.animationDelay = delay + 's';
+      h.style.opacity = (Math.random() * 0.35 + 0.1).toFixed(2);
+      heartsLayer.appendChild(h);
+      return h;
+    }
+
+    const HEART_COUNT = 26;
+    const hearts = [];
+    for(let i=0;i<HEART_COUNT;i++){
+      hearts.push(
+        makeHeart(
+          Math.random()*100,               // posição horizontal
+          Math.random()*12 + 14,            // tamanho
+          Math.random()*10 + 12,            // duração da subida
+          Math.random()*-20                 // atraso inicial (negativo = já em andamento)
+        )
+      );
+    }
+
+    // Botão: mais carinho = solta alguns corações extras mais fortes
+    const loveBtn = document.getElementById('loveBtn');
+    loveBtn.addEventListener('click', () => {
+      for(let i=0;i<6;i++){
+        const h = makeHeart(10 + Math.random()*80, 18 + Math.random()*16, 8 + Math.random()*8, 0);
+        h.style.opacity = .6; h.style.filter = 'saturate(1.2)';
+        setTimeout(()=> h.remove(), 16000);
+      }
+      loveBtn.animate([{ transform:'translateY(0)' },{ transform:'translateY(-3px)' },{ transform:'translateY(0)'}],{ duration:250, easing:'ease-out' });
+    });
+
+    // Pausar/retomar animação
+    const toggleBtn = document.getElementById('toggleHearts');
+    let paused = false;
+    toggleBtn.addEventListener('click', () => {
+      paused = !paused;
+      heartsLayer.style.animationPlayState = paused ? 'paused' : 'running';
+      hearts.forEach(h => h.style.animationPlayState = paused ? 'paused' : 'running');
+      toggleBtn.textContent = paused ? 'Retomar corações' : 'Pausar corações';
+      toggleBtn.setAttribute('aria-pressed', String(paused));
+    });
+
+    // Corrige o título com a grafia certa
+    document.title = 'Slow Fashion — Com Amor';
+  </script>
+</body>
+</html>
